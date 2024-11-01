@@ -36,9 +36,9 @@ class ApplicationIntegrationTest {
         registry.add("app.datasource.cardholder.url", MY_SQL_CONTAINER::getJdbcUrl);
         registry.add("app.datasource.cardholder.username", MY_SQL_CONTAINER::getUsername);
         registry.add("app.datasource.cardholder.password", MY_SQL_CONTAINER::getPassword);
-        registry.add("app.datasource.member.url", POSTGRE_SQL_CONTAINER::getJdbcUrl);
-        registry.add("app.datasource.member.username", POSTGRE_SQL_CONTAINER::getUsername);
-        registry.add("app.datasource.member.password", POSTGRE_SQL_CONTAINER::getPassword);
+        registry.add("spring.datasource.url", POSTGRE_SQL_CONTAINER::getJdbcUrl);
+        registry.add("spring.datasource.username", POSTGRE_SQL_CONTAINER::getUsername);
+        registry.add("spring.datasource.password", POSTGRE_SQL_CONTAINER::getPassword);
     }
 
     @Autowired
