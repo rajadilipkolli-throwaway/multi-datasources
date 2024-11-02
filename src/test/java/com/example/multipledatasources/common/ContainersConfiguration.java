@@ -1,7 +1,8 @@
 package com.example.multipledatasources.common;
 
-import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.containers.MySQLContainer;
@@ -11,45 +12,25 @@ import org.testcontainers.utility.DockerImageName;
 @TestConfiguration(proxyBeanMethods = false)
 public class ContainersConfiguration {
 
-    private MySQLContainer<?> mySQLContainer;
-    private PostgreSQLContainer<?> postgreSQLContainer;
-
-    @Bean
+    @Qualifier("second") @Bean(defaultCandidate = false)
+    @ServiceConnection
     MySQLContainer<?> mySQLContainer() {
-        mySQLContainer = new MySQLContainer<>(DockerImageName.parse("mysql").withTag("9.1"));
-        mySQLContainer.start();
-        return mySQLContainer;
+        return new MySQLContainer<>(DockerImageName.parse("mysql").withTag("9.1"));
     }
 
     @Bean
+    @ServiceConnection
     PostgreSQLContainer<?> postgreSQLContainer() {
-        postgreSQLContainer =
-                new PostgreSQLContainer<>(DockerImageName.parse("postgres").withTag("17.0-alpine"));
-        postgreSQLContainer.start();
-        return postgreSQLContainer;
+        return new PostgreSQLContainer<>(DockerImageName.parse("postgres").withTag("17.0-alpine"));
     }
 
     @Bean
-    public DynamicPropertyRegistrar databaseProperties(
-            MySQLContainer<?> mySQLContainer, PostgreSQLContainer<?> postgreSQLContainer) {
+    public DynamicPropertyRegistrar databaseProperties(@Qualifier("second") MySQLContainer<?> mySQLContainer) {
         return (properties) -> {
             // Connect our Spring application to our Testcontainers instances
             properties.add("app.datasource.cardholder.url", mySQLContainer::getJdbcUrl);
             properties.add("app.datasource.cardholder.username", mySQLContainer::getUsername);
             properties.add("app.datasource.cardholder.password", mySQLContainer::getPassword);
-            properties.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
-            properties.add("spring.datasource.username", postgreSQLContainer::getUsername);
-            properties.add("spring.datasource.password", postgreSQLContainer::getPassword);
         };
-    }
-
-    @PreDestroy
-    public void cleanup() {
-        if (mySQLContainer != null && mySQLContainer.isRunning()) {
-            mySQLContainer.stop();
-        }
-        if (postgreSQLContainer != null && postgreSQLContainer.isRunning()) {
-            postgreSQLContainer.stop();
-        }
     }
 }
